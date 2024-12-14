@@ -1,6 +1,3 @@
-import java.awt.*
-import javax.swing.*
-
 fun main() {
     val input = readInput("Day14")
     val m = 101
@@ -12,71 +9,34 @@ fun main() {
         RD(x, y, vx, vy)
     }
     val c = Array(n) { IntArray(m) }
-    var p: List<P2> = emptyList()
-    val dim = 5
-    val label = JLabel("Start")
-    val canvas = object : JPanel() {
-        init {
-            preferredSize = Dimension(dim * m, dim * n)
-        }
-
-        override fun paintComponent(g: Graphics) {
-            g.color = Color.WHITE
-            g.fillRect(0, 0, dim * m, dim * n)
-            g.color = Color.BLACK
-            for (x0 in 0..<m) for (y0 in 0..<n) if (c[y0][x0] > 0) {
-                val x = x0 * dim
-                val y = y0 * dim
-                g.fillRect(x, y, dim, dim)
-            }
-        }
+    var best = 0
+    var bestK = -1
+    val q = ArrayList<P2>()
+    fun enq(x: Int, y: Int) {
+        if (x !in 0..<m || y !in 0..<n) return
+        if (c[y][x] <= 0) return
+        c[y][x] = -1
+        q += P2(x, y)
     }
-    var k = 0
-    fun update() {
-        for ((x, y) in p) {
-            c[y][x] = 0
-        }
-        p = rd.map { (x, y, vx, vy) ->
+    for (k in 1..m * n) {
+        val p = rd.map { (x, y, vx, vy) ->
             P2((x + vx * k).mod(m), (y + vy * k).mod(n))
         }
-        for ((x, y) in p) {
-            c[y][x]++
+        for ((x, y) in p) c[y][x]++
+        for (x0 in 0..<m) for (y0 in 0..<n) if (c[y0][x0] > 0) {
+            q.clear()
+            var h = 0
+            enq(x0, y0)
+            while (h < q.size) {
+                val (x, y) = q[h++]
+                for (dx in -1..1) for (dy in -1..1) enq(x + dx, y + dy)
+            }
+            if (q.size > best) {
+                best = q.size
+                bestK = k
+            }
         }
-        label.text = "Step $k"
-        canvas.repaint()
+        for ((x, y) in p) c[y][x] = 0
     }
-
-    val nextButton = JButton("+1").apply {
-        addActionListener {
-            k++
-            update()
-        }
-    }
-    val next101Button = JButton("+101").apply {
-        addActionListener {
-            k += 101
-            update()
-        }
-    }
-    val prevButton = JButton("-1").apply {
-        addActionListener {
-            k--
-            update()
-        }
-    }
-    JFrame("Day12_2").apply {
-        contentPane = JPanel(BorderLayout())
-        contentPane.add(canvas, BorderLayout.CENTER)
-        defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-        contentPane.add(canvas, BorderLayout.CENTER)
-        val bottomPanel = JPanel(FlowLayout(FlowLayout.CENTER)).apply {
-            add(label)
-            add(prevButton)
-            add(nextButton)
-            add(next101Button)
-        }
-        contentPane.add(bottomPanel, BorderLayout.SOUTH)
-        pack()
-        isVisible = true
-    }
+    println(bestK)
 }
