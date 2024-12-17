@@ -24,13 +24,15 @@ fun main() {
         14: if (r0 != 0) goto 0
      */
     val n = out.size * 3
+    val solutions = ArrayList<Long>()
     // k -- current output index (bit index == 3*k)
     // b -- current bits
     // f -- current "fixed" bits (do not change anymore)
-    fun scan(k: Int, b: Long, f: Long): Boolean {
+    fun scan(k: Int, b: Long, f: Long) {
         if (k == out.size) {
-            println(b)
-            return true
+            println("-- $b")
+            solutions.add(b)
+            return
         }
         val i = 3 * k // bit index
         val b3 = ((b shr i) and 7).toInt()
@@ -49,9 +51,9 @@ fun main() {
             if (eb3 != (ef3 and expect)) continue
             val bb = bu or (expect.toLong() shl (i + r1))
             val ff = fu or (7L shl (i + r1))
-            if (scan(k + 1, bb, ff)) return true
+            scan(k + 1, bb, ff)
         }
-        return false
     }
     scan(0, 0L, ((1L shl n) - 1).inv())
+    println(solutions.min())
 }
