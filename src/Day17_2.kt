@@ -24,64 +24,34 @@ fun main() {
         14: if (r0 != 0) goto 0
      */
     val n = out.size * 3
-    val bits = IntArray(n + 10)
-    val f = BooleanArray(n + 10)
-    f.fill(true, n)
-    fun scan(k: Int): Boolean {
+    // k -- current output index (bit index == 3*k)
+    // b -- current bits
+    // f -- current "fixed" bits (do not change anymore)
+    fun scan(k: Int, b: Long, f: Long): Boolean {
         if (k == out.size) {
-            var ans = 0L
-            for (i in 0..<n) {
-                ans = ans or (bits[i].toLong() shl i)
-            }
-            println(ans)
+            println(b)
             return true
         }
-        val i = 3 * k
-        val wf0 = f[i]
-        val wf1 = f[i + 1]
-        val wf2 = f[i + 2]
-        f[i] = true
-        f[i + 1] = true
-        f[i + 2] = true
+        val i = 3 * k // bit index
+        val b3 = ((b shr i) and 7).toInt()
+        val f3 = ((f shr i) and 7).toInt()
         for (j in 0 .. 7) {
-            val b0 = j and 1
-            val b1 = (j shr 1) and 1
-            val b2 = (j shr 2) and 1
-            if (wf0 && (b0 != bits[i])) continue
-            if (wf1 && (b1 != bits[i + 1])) continue
-            if (wf2 && (b2 != bits[i + 2])) continue
-            bits[i] = b0
-            bits[i + 1] = b1
-            bits[i + 2] = b2
+            if (b3 != (f3 and j)) continue
+            val bu = b or (j.toLong() shl i)
+            val fu = f or (7L shl i)
             // r1 = bits3[i] xor c1
             // out r1 xor bits3[i + r1] xor c2
             val r1 = j xor c1
             val expect = out[k] xor r1 xor c2
             check(expect in 0..7)
-            val e0 = expect and 1
-            val e1 = (expect shr 1) and 1
-            val e2 = (expect shr 2) and 1
-            val zf0 = f[i + r1]
-            val zf1 = f[i + r1 + 1]
-            val zf2 = f[i + r1 + 2]
-            if (zf0 && (e0 != bits[i + r1])) continue
-            if (zf1 && (e1 != bits[i + r1 + 1])) continue
-            if (zf2 && (e2 != bits[i + r1 + 2])) continue
-            f[i + r1] = true
-            f[i + r1 + 1] = true
-            f[i + r1 + 2] = true
-            bits[i + r1] = e0
-            bits[i + r1 + 1] = e1
-            bits[i + r1 + 2] = e2
-            if (scan(k + 1)) return true
-            f[i + r1] = zf0
-            f[i + r1 + 1] = zf1
-            f[i + r1 + 2] = zf2
+            val eb3 = ((bu shr (i + r1)) and 7).toInt()
+            val ef3 = ((fu shr (i + r1)) and 7).toInt()
+            if (eb3 != (ef3 and expect)) continue
+            val bb = bu or (expect.toLong() shl (i + r1))
+            val ff = fu or (7L shl (i + r1))
+            if (scan(k + 1, bb, ff)) return true
         }
-        f[i] = wf0
-        f[i + 1] = wf1
-        f[i + 2] = wf2
         return false
     }
-    scan(0)
+    scan(0, 0L, ((1L shl n) - 1).inv())
 }
