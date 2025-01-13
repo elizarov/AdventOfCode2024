@@ -1,16 +1,10 @@
 fun main() {
-    val input = readInput("Day01")
-    val l1 = ArrayList<Long>()
-    val l2 = ArrayList<Long>()
-    for (s in input) {
-        val (a, b) = s.replace(Regex("[ ]+"), " ").split(' ').map { it.toLong() }
-        l1.add(a)
-        l2.add(b)
+    val input = readInput("Day01").map { line ->
+        line.split(' ').filter { it.isNotEmpty() }.map { it.toLong() }
     }
-    var sum = 0L
+    val l1 = input.map { it[0] }
+    val l2 = input.map { it[1] }
     val cnt = l2.groupingBy { it }.eachCount()
-    for (x in l1) {
-        sum += x * (cnt[x] ?: 0)
-    }
+    val sum = l1.sumOf { x -> x * (cnt[x] ?: 0) }
     println(sum)
 }
